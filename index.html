@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWAGA — DayZ Deathmatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: #9B59B6; --accent-light: #C39BD3; --accent-dim: rgba(155,89,182,0.18);
+    --bg: #0D0D0F; --surface: #141417; --surface2: #1C1C21;
+    --text: #F0EEF5; --muted: #8A8794; --border: rgba(155,89,182,0.2);
+    --green: #2ecc71; --green-dim: rgba(46,204,113,0.15);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; background: rgba(13,13,15,0.75); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .nav-logo { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 20px; color: var(--text); }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a { font-size: 14px; font-weight: 500; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 100px; padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Manrope', sans-serif; transition: background 0.2s, transform 0.15s; text-decoration: none; }
+  .nav-cta:hover { background: #8e44ad; transform: translateY(-1px); }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 24px 80px; position: relative; overflow: hidden; }
+  .hero-glow { position: absolute; width: 700px; height: 700px; background: radial-gradient(circle, rgba(155,89,182,0.22) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -60%); pointer-events: none; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-dim); border: 1px solid var(--border); border-radius: 100px; padding: 6px 16px; font-size: 13px; font-weight: 500; color: var(--accent-light); margin-bottom: 32px; position: relative; }
+  .hero-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  .hero h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(52px, 9vw, 100px); font-weight: 900; line-height: 1; letter-spacing: -3px; margin-bottom: 8px; position: relative; }
+  .hero h1 .purple { color: var(--accent); }
+  .hero-sub { font-family: 'Unbounded', sans-serif; font-size: clamp(12px, 2vw, 16px); font-weight: 400; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 24px; position: relative; }
+  .hero-tagline { font-size: clamp(16px, 2.5vw, 20px); color: var(--muted); font-weight: 400; max-width: 540px; line-height: 1.65; margin-bottom: 48px; position: relative; }
+  .hero-tagline em { font-style: normal; color: var(--text); font-weight: 600; }
+  .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; position: relative; margin-bottom: 64px; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 100px; padding: 16px 36px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: 'Manrope', sans-serif; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary:hover { background: #8e44ad; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(155,89,182,0.4); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; padding: 16px 36px; font-size: 16px; font-weight: 500; cursor: pointer; font-family: 'Manrope', sans-serif; transition: all 0.2s; text-decoration: none; }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent-light); transform: translateY(-2px); }
+  .servers-wrap { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 660px; position: relative; }
+  .server-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 16px 20px; transition: border-color 0.2s, transform 0.15s; }
+  .server-card:hover { border-color: rgba(155,89,182,0.5); transform: translateY(-2px); }
+  .server-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+  .server-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #555; transition: background 0.3s; }
+  .server-dot.online { background: var(--green); box-shadow: 0 0 6px rgba(46,204,113,0.6); }
+  .server-dot.offline { background: #e74c3c; }
+  .server-info { min-width: 0; }
+  .server-name { font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 700; }
+  .server-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .server-tag { font-size: 11px; font-weight: 600; padding: 2px 8px; background: var(--accent-dim); color: var(--accent-light); border-radius: 100px; border: 1px solid var(--border); }
+  .server-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .players-badge { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid rgba(255,255,255,0.08); border-radius: 100px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted); min-width: 72px; justify-content: center; transition: all 0.3s; }
+  .players-badge.loaded { color: var(--green); border-color: rgba(46,204,113,0.2); background: var(--green-dim); }
+  .players-badge.offline-badge { color: #e74c3c; border-color: rgba(231,76,60,0.2); background: rgba(231,76,60,0.1); }
+  .server-ip { font-family: 'Courier New', monospace; font-size: 11px; color: var(--muted); }
+  .copy-btn { background: var(--accent-dim); border: 1px solid var(--border); color: var(--accent-light); border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Manrope', sans-serif; transition: background 0.2s; white-space: nowrap; }
+  .copy-btn:hover { background: rgba(155,89,182,0.3); }
+  .total-online { display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 12px 20px; background: var(--surface); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; align-self: stretch; justify-content: center; }
+  .total-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .total-num { font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 700; color: var(--green); }
+  .refresh-btn { margin-left: auto; background: none; border: 1px solid rgba(255,255,255,0.08); color: var(--muted); border-radius: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: 'Manrope', sans-serif; transition: all 0.2s; }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+  .refresh-btn.spinning { animation: spin 1s linear infinite; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .stats { display: flex; justify-content: center; gap: 64px; padding: 64px 48px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Unbounded', sans-serif; font-size: 40px; font-weight: 700; line-height: 1; margin-bottom: 8px; }
+  .stat-num span { color: var(--accent); }
+  .stat-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .section { padding: 100px 48px; max-width: 1200px; margin: 0 auto; }
+  .section-tag { display: inline-block; font-size: 12px; font-weight: 600; color: var(--accent-light); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  .section-title { font-family: 'Unbounded', sans-serif; font-size: clamp(26px, 4vw, 44px); font-weight: 700; line-height: 1.15; letter-spacing: -1.5px; margin-bottom: 14px; }
+  .section-sub { font-size: 16px; color: var(--muted); max-width: 500px; line-height: 1.65; margin-bottom: 48px; }
+  .modes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .mode-card { background: var(--surface); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 32px; transition: border-color 0.3s, transform 0.2s; position: relative; overflow: hidden; }
+  .mode-card:hover { border-color: var(--border); transform: translateY(-4px); }
+  .mode-card.featured { border-color: var(--border); }
+  .mode-card.featured::before { content: 'ПОПУЛЯРНЫЙ'; position: absolute; top: 16px; right: 16px; font-size: 10px; font-weight: 700; letter-spacing: 1px; background: var(--accent-dim); color: var(--accent-light); border: 1px solid var(--border); border-radius: 100px; padding: 3px 10px; }
+  .mode-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .mode-icon { font-size: 32px; }
+  .mode-live { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); background: var(--surface2); border-radius: 100px; padding: 4px 12px; transition: all 0.3s; }
+  .mode-live.loaded { color: var(--green); background: var(--green-dim); }
+  .mode-live.offline-live { color: #e74c3c; background: rgba(231,76,60,0.1); }
+  .mode-live-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .mode-title { font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.3px; }
+  .mode-ip { font-family: 'Courier New', monospace; font-size: 12px; color: var(--accent-light); background: var(--accent-dim); border-radius: 8px; padding: 6px 10px; display: inline-block; margin-bottom: 14px; }
+  .mode-desc { font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 20px; }
+  .mode-weapons { display: flex; gap: 6px; flex-wrap: wrap; }
+  .weapon-tag { font-size: 11px; font-weight: 600; padding: 3px 10px; background: rgba(255,255,255,0.06); color: var(--muted); border-radius: 100px; border: 1px solid rgba(255,255,255,0.08); }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
+  .feature-card { background: var(--surface); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 24px; transition: border-color 0.3s, transform 0.2s; }
+  .feature-card:hover { border-color: var(--border); transform: translateY(-3px); }
+  .feature-icon { font-size: 24px; margin-bottom: 14px; }
+  .feature-title { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .cta-section { margin: 0 48px 100px; background: linear-gradient(135deg, var(--surface2) 0%, rgba(155,89,182,0.12) 100%); border: 1px solid var(--border); border-radius: 28px; padding: 80px 64px; text-align: center; position: relative; overflow: hidden; }
+  .cta-glow { position: absolute; width: 500px; height: 300px; background: radial-gradient(ellipse, rgba(155,89,182,0.2) 0%, transparent 70%); top: -100px; left: 50%; transform: translateX(-50%); pointer-events: none; }
+  .cta-section h2 { font-family: 'Unbounded', sans-serif; font-size: clamp(22px, 4vw, 40px); font-weight: 700; letter-spacing: -1.5px; margin-bottom: 14px; position: relative; }
+  .cta-section p { font-size: 16px; color: var(--muted); margin-bottom: 40px; position: relative; }
+  .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; }
+  footer { padding: 32px 48px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 16px; }
+  .footer-logo span { color: var(--accent); }
+  footer p { font-size: 13px; color: var(--muted); }
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+  @media (max-width: 640px) { nav { padding: 16px 20px; } .nav-links { display: none; } .section { padding: 64px 20px; } .cta-section { margin: 0 20px 64px; padding: 48px 24px; } footer { padding: 24px 20px; } .server-ip { display: none; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">SWA<span>GA</span></div>
+  <div class="nav-links">
+    <a href="#servers">Серверы</a>
+    <a href="#features">Фичи</a>
+    <a href="https://discord.gg/TCkcrcTmEg">Discord</a>
+  </div>
+  <a href="https://discord.gg/TCkcrcTmEg" class="nav-cta">Войти в Discord</a>
+</nav>
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge"><div class="hero-badge-dot"></div>3 сервера онлайн · DayZ</div>
+  <h1>SWA<span class="purple">GA</span></h1>
+  <div class="hero-sub">Deathmatch · DayZ</div>
+  <p class="hero-tagline"><em>© Apple в мире DayZ.</em><br>Три сервера. Свои моды. Никаких компромиссов.</p>
+  <div class="hero-actions">
+    <a href="https://discord.gg/TCkcrcTmEg" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.113 18.1.133 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Войти в Discord
+    </a>
+    <a href="#servers" class="btn-secondary">Выбрать сервер</a>
+  </div>
+  <div class="servers-wrap">
+    <div class="server-card">
+      <div class="server-left"><div class="server-dot" id="dot-heavy"></div><div class="server-info"><div class="server-name">20MM · 50BMG</div><div class="server-tags"><span class="server-tag">Heavy</span><span class="server-tag">Duel</span></div></div></div>
+      <div class="server-right"><div class="players-badge" id="players-heavy">—</div><div class="server-ip">194.147.90.110:2302</div><button class="copy-btn" onclick="copyIP('194.147.90.110:2302',this)">КОПИРОВАТЬ</button></div>
+    </div>
+    <div class="server-card">
+      <div class="server-left"><div class="server-dot" id="dot-mid"></div><div class="server-info"><div class="server-name">SMGs · .338</div><div class="server-tags"><span class="server-tag">Mid</span><span class="server-tag">Duel</span></div></div></div>
+      <div class="server-right"><div class="players-badge" id="players-mid">—</div><div class="server-ip">185.189.255.113:2602</div><button class="copy-btn" onclick="copyIP('185.189.255.113:2602',this)">КОПИРОВАТЬ</button></div>
+    </div>
+    <div class="server-card">
+      <div class="server-left"><div class="server-dot" id="dot-vanilla"></div><div class="server-info"><div class="server-name">Vanilla</div><div class="server-tags"><span class="server-tag">Чистый</span><span class="server-tag">Duel</span></div></div></div>
+      <div class="server-right"><div class="players-badge" id="players-vanilla">—</div><div class="server-ip">194.147.90.110:2402</div><button class="copy-btn" onclick="copyIP('194.147.90.110:2402',this)">КОПИРОВАТЬ</button></div>
+    </div>
+    <div class="total-online">
+      <span class="total-label">Всего в игре:</span>
+      <span class="total-num" id="total-players">—</span>
+      <button class="refresh-btn" id="refresh-btn" onclick="fetchStatus()">↻ обновить</button>
+    </div>
+  </div>
+</section>
+<div class="stats fade-in">
+  <div class="stat"><div class="stat-num">3<span>x</span></div><div class="stat-label">Сервера DM</div></div>
+  <div class="stat"><div class="stat-num">64<span>+</span></div><div class="stat-label">Слотов каждый</div></div>
+  <div class="stat"><div class="stat-num">24<span>/7</span></div><div class="stat-label">Онлайн</div></div>
+  <div class="stat"><div class="stat-num">0<span>ms</span></div><div class="stat-label">Компромиссов</div></div>
+</div>
+<section class="section fade-in" id="servers">
+  <span class="section-tag">Серверы</span>
+  <h2 class="section-title">Выбери свой режим</h2>
+  <p class="section-sub">Три сервера под разный стиль игры — от хэви-калибра до чистой ванили.</p>
+  <div class="modes-grid">
+    <div class="mode-card featured">
+      <div class="mode-header"><div class="mode-icon">💥</div><div class="mode-live" id="live-heavy"><div class="mode-live-dot"></div><span id="live-heavy-text">—</span></div></div>
+      <div class="mode-title">Heavy Caliber</div><div class="mode-ip">194.147.90.110:2302</div>
+      <div class="mode-desc">Максимальный урон, брутальные перестрелки. Для тех, кто не боится 20мм в лицо.</div>
+      <div class="mode-weapons"><span class="weapon-tag">20MM</span><span class="weapon-tag">50BMG</span><span class="weapon-tag">Duel System</span></div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-header"><div class="mode-icon">🔫</div><div class="mode-live" id="live-mid"><div class="mode-live-dot"></div><span id="live-mid-text">—</span></div></div>
+      <div class="mode-title">Mid Range</div><div class="mode-ip">185.189.255.113:2602</div>
+      <div class="mode-desc">Баланс между скоростью и точностью. SMG для ближнего боя, .338 для дальних дистанций.</div>
+      <div class="mode-weapons"><span class="weapon-tag">SMGs</span><span class="weapon-tag">.338</span><span class="weapon-tag">Duel System</span></div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-header"><div class="mode-icon">🎯</div><div class="mode-live" id="live-vanilla"><div class="mode-live-dot"></div><span id="live-vanilla-text">—</span></div></div>
+      <div class="mode-title">Vanilla</div><div class="mode-ip">194.147.90.110:2402</div>
+      <div class="mode-desc">Чистый DayZ без лишнего. Только скилл, только ваниль, только честный дуэльный матч.</div>
+      <div class="mode-weapons"><span class="weapon-tag">Vanilla</span><span class="weapon-tag">Duel System</span></div>
+    </div>
+  </div>
+</section>
+<section class="section fade-in" id="features">
+  <span class="section-tag">Под капотом</span>
+  <h2 class="section-title">Сделано с обсессивным<br>вниманием к деталям</h2>
+  <p class="section-sub">Каждая система написана с нуля на Enforce Script. Никаких заимствований.</p>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">⚔️</div><div class="feature-title">Duel System</div><div class="feature-desc">Честные PvP-дуэли с заморозкой позиций, обратным отсчётом и перехватом урона.</div></div>
+    <div class="feature-card"><div class="feature-icon">🛡️</div><div class="feature-title">Античит</div><div class="feature-desc">Confidence-based детекция. Умные исключения для транспорта, лестниц и краевых случаев.</div></div>
+    <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-title">CS2-style HUD</div><div class="feature-desc">Кастомный интерфейс матча в верхней части экрана. Информативно, без мусора.</div></div>
+    <div class="feature-card"><div class="feature-icon">👑</div><div class="feature-title">VIP-система</div><div class="feature-desc">Автороли, профили, Discord-интеграция через бота. Всё автоматически.</div></div>
+  </div>
+</section>
+<div class="cta-section fade-in">
+  <div class="cta-glow"></div>
+  <h2>Готов зайти?</h2>
+  <p>Копируй IP нужного сервера или заходи в Discord — там всё: новости, обновления, поддержка.</p>
+  <div class="cta-buttons">
+    <a href="https://discord.gg/TCkcrcTmEg" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.113 18.1.133 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Открыть Discord
+    </a>
+  </div>
+</div>
+<footer>
+  <div class="footer-logo">SWA<span>GA</span></div>
+  <p>© 2025 SWAGA · DayZ Deathmatch · Сделано с обсессией</p>
+</footer>
+<script>
+const API = 'http://YOUR_VPS_IP:3000/status';
+function updateServer(id, data) {
+  const dot = document.getElementById('dot-'+id);
+  const badge = document.getElementById('players-'+id);
+  const live = document.getElementById('live-'+id);
+  const liveText = document.getElementById('live-'+id+'-text');
+  if (data.online) {
+    if(dot) dot.className='server-dot online';
+    if(badge){badge.textContent=data.players+' / '+data.maxPlayers;badge.className='players-badge loaded';}
+    if(live) live.className='mode-live loaded';
+    if(liveText) liveText.textContent=data.players+' онлайн';
+  } else {
+    if(dot) dot.className='server-dot offline';
+    if(badge){badge.textContent='офлайн';badge.className='players-badge offline-badge';}
+    if(live) live.className='mode-live offline-live';
+    if(liveText) liveText.textContent='офлайн';
+  }
+}
+async function fetchStatus() {
+  const btn = document.getElementById('refresh-btn');
+  if(btn) btn.classList.add('spinning');
+  try {
+    const res = await fetch(API);
+    const data = await res.json();
+    let total = 0;
+    data.forEach(s => { updateServer(s.id, s); if(s.online) total += s.players; });
+    const el = document.getElementById('total-players');
+    if(el) el.textContent = total;
+  } catch {
+    ['heavy','mid','vanilla'].forEach(id => updateServer(id,{online:false,players:0,maxPlayers:0}));
+    const el = document.getElementById('total-players');
+    if(el) el.textContent = '—';
+  } finally {
+    if(btn) btn.classList.remove('spinning');
+  }
+}
+function copyIP(ip, btn) {
+  navigator.clipboard.writeText(ip).then(() => {
+    const orig = btn.textContent;
+    btn.textContent='СКОПИРОВАНО!';btn.style.background='rgba(46,204,113,0.2)';btn.style.color='#2ecc71';btn.style.borderColor='rgba(46,204,113,0.3)';
+    setTimeout(()=>{btn.textContent=orig;btn.style.background='';btn.style.color='';btn.style.borderColor='';},2000);
+  });
+}
+const observer = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+fetchStatus();
+setInterval(fetchStatus,30000);
+</script>
+</body>
+</html>
