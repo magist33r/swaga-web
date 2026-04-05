@@ -1,4 +1,6 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { GameDig } = require('gamedig');
 
 const PORT = 3000;
@@ -32,13 +34,25 @@ async function queryServer(server) {
 
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
 
   if (req.url === '/status') {
+    res.setHeader('Content-Type', 'application/json');
     const results = await Promise.all(SERVERS.map(queryServer));
     res.end(JSON.stringify(results));
+  } else if (req.url === '/' || req.url === '/index.html') {
+    const filePath = path.join(__dirname, 'index.html');
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(404);
+        res.end('Not found');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(data);
+    });
   } else {
     res.writeHead(404);
+    res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: 'Not found' }));
   }
 });
