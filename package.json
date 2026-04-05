@@ -13,7 +13,5 @@
     "outputPath": "dist",
     "assets": []
   },
-  "dependencies": {
-    "gamedig": "^5.3.2"
-  }
+  "dependencies": {}
 }

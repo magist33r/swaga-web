@@ -1,31 +1,25 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { GameDig } = require('gamedig');
 
 const PORT = 3000;
 
 const SERVERS = [
-  { id: 'heavy',   host: '194.147.90.110', port: 2302 },
-  { id: 'mid',     host: '185.189.255.113', port: 2602 },
-  { id: 'vanilla', host: '194.147.90.110',  port: 2402 },
+  { id: 'heavy',   bmId: '38425390' },
+  { id: 'mid',     bmId: '34292881' },
+  { id: 'vanilla', bmId: '38418023' },
 ];
 
 async function queryServer(server) {
   try {
-    const state = await GameDig.query({
-      type: 'dayz',
-      host: server.host,
-      port: server.port,
-      maxAttempts: 2,
-      socketTimeout: 3000,
-    });
+    const res = await fetch(`https://api.battlemetrics.com/servers/${server.bmId}`);
+    const data = await res.json();
+    const attr = data.data.attributes;
     return {
       id: server.id,
-      online: true,
-      players: state.players.length,
-      maxPlayers: state.maxplayers,
-      name: state.name,
+      online: attr.status === 'online',
+      players: attr.players,
+      maxPlayers: attr.maxPlayers,
     };
   } catch {
     return { id: server.id, online: false, players: 0, maxPlayers: 0 };
